@@ -1,16 +1,17 @@
 body {
+  font-family: 'AppleSDGothicNeo', 'Noto Sans KR', sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-weight: bold;
   font-size: 25px;
 }
 
 button {
+  font-family: 'AppleSDGothicNeo', 'Noto Sans KR', sans-serif;
   border: none;
-  font-size: 20px;
+  font-size: 25px;
 }
 
 .display {
@@ -22,24 +23,31 @@ button {
   padding: 15px;
 }
 .display .result {
+  min-height: 80px;
+  text-align: right;
+
   font-size: 60px;
 }
 
 .calc {
   box-sizing: border-box;
-  padding: 40px 10px;
+  padding: 40px 15px;
   display: flex;
   flex-direction: column;
   width: 300px;
   height: 600px;
   background: black;
   border-radius: 30px;
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 50px #a5a5a5;
 }
 
 .display {
   flex-basis: 200px;
   flex-grow: 5;
+}
+
+.display-calc {
+  color: #737373;
 }
 
 .buttons {
@@ -65,12 +73,39 @@ button {
 }
 .btn-style1 {
   background: #a5a5a5;
+  font-weight: bold;
+  font-size: 22px;
+}
+.btn-style1:first-child {
+  font-weight: normal;
 }
 .btn-style2 {
   background: #fe9f06;
   color: white;
+  font-weight: bold;
+  padding-bottom: 5px;
+  font-size: 30px;
 }
 .btn-style3 {
   background: #333333;
   color: white;
+}
+
+.btn-style1:active {
+  background: #cecece;
+  transition: 0.3s;
+}
+.btn-style2:hover {
+  background: #fcc78d;
+  transition: 0.3s;
+}
+
+.btn-style2:active {
+  background: white;
+  color: #fe9f06;
+}
+
+.btn-style3:active {
+  background: #737373;
+  transition: 0.3s;
 }

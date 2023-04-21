@@ -1,50 +1,122 @@
-const display = document.querySelector('.result');
-const operations = document.querySelectorAll('.operation');
+// -------------------------DOM---------------------------- //
+const box = document.querySelector('.calc');
+const result = document.querySelector('.result');
+const display = document.querySelector('.display-calc');
+const operations1 = document.querySelectorAll('.operation1');
+const operations2 = document.querySelectorAll('.operation2');
 const numbers = document.querySelectorAll('.number');
-let currentNumber = '0'; // 문자열 '0'으로 초기화
-let decimalUsed = false;
-let currentSign = 1; // 현재 숫자의 부호, 초기값은 양수로 설정
+// -----------------------기본 세팅------------------------ //
+let currentNumber = '';
+let dotUsed = false;
+let operator = null;
+let prevNumber = null;
+// 이전에 계산된 결과를 저장해 둘 변수
+let previousResult = null;
+// -------------------------------------------------------- //
 
+operations1.forEach((button) => {
+  button.addEventListener('click', () => {
+    const buttonText = button.textContent;
+
+    if (result.textContent === '0' && buttonText !== 'AC') {
+      // result가 0인 경우, AC 버튼이 아닌 다른 버튼 클릭 이벤트를 막음
+      return;
+    } else if (buttonText === 'AC') {
+      // 'AC' 버튼을 클릭한 경우의 계산 수행
+      currentNumber = '0';
+      dotUsed = false;
+      operator = null;
+      result.textContent = '0';
+      display.textContent = '';
+    } // '&#177' 버튼을 클릭한 경우의 계산 수행
+    else if (buttonText === '±') {
+      currentNumber = currentNumber.startsWith('-')
+        ? currentNumber.substring(1)
+        : `-${currentNumber}`;
+      display.textContent = currentNumber;
+    } else if (buttonText === '%') {
+      currentNumber = (parseFloat(currentNumber) / 100).toString();
+      display.textContent = currentNumber;
+    }
+    result.textContent = currentNumber;
+    resizeFont();
+  });
+});
+
+// ----------------------숫자 버튼------------------------- //
 numbers.forEach((number) => {
   number.addEventListener('click', () => {
     const numberText = number.textContent;
-    if (numberText === '.' && !decimalUsed) {
+    // 숫자버튼을 다시 누를 때 result에 숫자 갱신
+
+    // '.' 중복 방지하기
+    if (numberText === '.' && !dotUsed) {
       currentNumber += numberText;
-      decimalUsed = true;
+      dotUsed = true;
     } else if (numberText !== '.') {
-      currentNumber =
-        currentNumber === '0' && !decimalUsed ? numberText : currentNumber + numberText;
+      // 현재 연산자가 없을 때는 입력된 숫자를 결과창에 출력
       // 현재 입력된 숫자가 0이고 소수점이 아직 입력되지 않은 경우, 0을 대체
+      currentNumber = currentNumber === '0' && !dotUsed ? numberText : currentNumber + numberText;
     }
-    display.textContent = currentNumber; // display.textContent에 할당
+    display.textContent += numberText;
+    result.textContent = currentNumber; // 결과창에도 할당
+    resizeFont();
   });
 });
+// ------------------------------------------------------------- //
 
-// AC / = / 연산자 버튼을 클릭한 경우
-operations.forEach((button) => {
+// ----------------------사칙연산 버튼------------------------ //
+
+operations2.forEach((button) => {
   button.addEventListener('click', () => {
-    const buttonText = button.textContent;
-    // 'AC' 버튼을 클릭한 경우의 계산 수행
-    if (buttonText === 'AC') {
-      currentNumber = '0';
-      decimalUsed = false;
-      currentSign = 1; // 부호 초기화
-    } else if (buttonText === '=') {
-      // '=' 버튼을 클릭한 경우의 계산 수행
-      const result = eval(display.textContent); // eval() 함수 사용
-      display.textContent = result;
-      currentNumber = result.toString(); // 문자열로 변환
-      currentSign = result < 0 ? -1 : 1; // 결과의 부호 저장
-    } else if (buttonText === '±') {
-      currentSign = -currentSign;
-      currentNumber = parseFloat(currentNumber) * -1;
-    } else if (buttonText === '%') {
-      const result = parseFloat(currentNumber) / 100;
-      display.textContent = result.toString();
-      currentNumber = result.toString();
-    } else {
-    }
+    if (result.textContent === '0') {
+      // result가 0인 경우, 모든 버튼 클릭 이벤트를 막음
+      return;
+    } else if (button.textContent == '=') {
+      // display에 있는 수식을 가져옴
+      let expression = display.textContent;
+      // "x"를 "*"로 변환
+      expression = expression.replace('×', '*');
+      // "÷"를 "/"로 변환
+      expression = expression.replace(/÷/g, '/');
+      // 수식을 분리하여 계산
+      let calcResult = eval(expression);
 
-    display.textContent = currentNumber; // display.textContent에 할당
+      // 출력
+      result.textContent = calcResult;
+      display.textContent = calcResult;
+      currentNumber = '';
+      return;
+    }
+    if (!['+', '-', '×', '÷'].includes(display.textContent.slice(-1))) {
+      // display에 있는 수식을 가져옴
+      let expression = display.textContent;
+      // "x"를 "*"로 변환
+      expression = expression.replace('×', '*');
+      // "÷"를 "/"로 변환
+      expression = expression.replace(/÷/g, '/');
+      // 수식을 분리하여 계산
+      let calcResult = eval(expression);
+
+      // 출력
+      result.textContent = calcResult;
+      display.textContent = calcResult + button.textContent;
+      currentNumber = '';
+      return;
+    } else {
+      display.textContent += button.textContent;
+    }
   });
 });
+
+// ----------------------------------------------------------- //
+
+function resizeFont() {
+  // 폰트 사이즈 동적 조절 함수
+  const boxWidth = box.clientWidth - 60;
+  const resultWidth = result.clientWidth;
+  if (resultWidth > boxWidth) {
+    const fontSize = parseFloat(window.getComputedStyle(result).fontSize);
+    result.style.fontSize = (fontSize * boxWidth) / resultWidth + 'px';
+  }
+}
