@@ -95,7 +95,7 @@ button {
   background: #cecece;
   transition: 0.3s;
 }
-.btn-style2:hover {
+/* .btn-style2:hover {
   background: #fcc78d;
   transition: 0.3s;
 }
@@ -103,7 +103,12 @@ button {
 .btn-style2:active {
   background: white;
   color: #fe9f06;
-}
+} */
+/* .btn-style2-clicked {
+  background: white;
+  color: #fe9f06;
+  transition: 0.3s;
+} */
 
 .btn-style3:active {
   background: #737373;
