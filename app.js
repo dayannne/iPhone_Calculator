@@ -61,6 +61,7 @@ numbers.forEach((number) => {
     if (numberText === '.' && !dotUsed) {
       currentNumber += numberText;
       display.textContent += display.textContent === '' ? '0' : '';
+
       dotUsed = true;
     } else if (numberText !== '.') {
       // 현재 연산자가 없을 때는 입력된 숫자를 결과창에 출력
@@ -77,7 +78,12 @@ numbers.forEach((number) => {
     } else if (display.textContent !== '0') {
       display.textContent += numberText;
     }
-    result.textContent = new Intl.NumberFormat().format(currentNumber); // 결과창에도 할당
+    if (result.textContent[0] === '0') {
+      result.textContent = currentNumber;
+    } else {
+      result.textContent = new Intl.NumberFormat().format(currentNumber);
+    }
+    // 결과창에도 할당
     resizeFont();
   });
 });
@@ -162,7 +168,6 @@ function resizeFont() {
 }
 
 // --------------------버튼 클릭 스타일 변경 함수----------------------- //
-let checked = false;
 let prevBtn = null;
 function resetStyle() {
   operations2.forEach((operation) => {
