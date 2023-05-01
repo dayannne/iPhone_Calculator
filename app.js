@@ -32,6 +32,7 @@ operations1.forEach((button) => {
         currentNumber = '0';
         dotUsed = false;
         previousResult = null;
+        prevNumber = null;
         result.textContent = '0';
         display.textContent = '';
         // 폰트 크기를 원래대로 복원
@@ -54,12 +55,12 @@ operations1.forEach((button) => {
 numbers.forEach((number) => {
   number.addEventListener('click', () => {
     const numberText = number.textContent;
-    // 숫자버튼을 다시 누를 때 result에 숫자 갱신
+    resetStyle();
 
     // '.' 중복 방지하기
     if (numberText === '.' && !dotUsed) {
       currentNumber += numberText;
-
+      display.textContent += display.textContent === '' ? '0' : '';
       dotUsed = true;
     } else if (numberText !== '.') {
       // 현재 연산자가 없을 때는 입력된 숫자를 결과창에 출력
@@ -68,12 +69,15 @@ numbers.forEach((number) => {
     } else if (numberText === '.' && dotUsed) {
       return;
     }
-    if (currentNumber.length > 9) {
+    if (currentNumber.replace('.', '').length > 9) {
       return;
     }
-
-    display.textContent += numberText;
-    result.textContent = currentNumber; // 결과창에도 할당
+    if (display.textContent === '0' && dotUsed) {
+      display.textContent += numberText;
+    } else if (display.textContent !== '0') {
+      display.textContent += numberText;
+    }
+    result.textContent = new Intl.NumberFormat().format(currentNumber); // 결과창에도 할당
     resizeFont();
   });
 });
@@ -113,7 +117,7 @@ operations2.forEach((operation) => {
   });
 });
 
-// -----------------------등호 버튼------------------------ //
+// -----------------------등호(=) 버튼------------------------ //
 const equal = document.querySelector('.equal');
 equal.addEventListener('click', () => {
   if (prevNumber !== null && currentNumber !== '' && operator !== null) {
@@ -134,7 +138,7 @@ function operate(num1, num2, operator) {
   switch (operator) {
     case '+':
       return num1 + num2;
-    case '-':
+    case '−':
       return num1 - num2;
     case '×':
       return num1 * num2;
@@ -157,35 +161,42 @@ function resizeFont() {
   }
 }
 
-// ---------------------------------------------------------- //
+// --------------------버튼 클릭 스타일 변경 함수----------------------- //
+let checked = false;
+let prevBtn = null;
+function resetStyle() {
+  operations2.forEach((operation) => {
+    operation.classList.remove('btn-style2-clicked');
+    operation.classList.add('btn-style2');
+  });
+}
 operations2.forEach((operation) => {
   operation.addEventListener('click', function () {
-    if (this !== this) {
-      this.style.backgroundColor = '#f69906';
-      this.style.color = 'white';
-      this.style.transition = 'all 0.3s';
+    if (this.textContent === '=') {
+      prevBtn = null;
+      resetStyle();
+    } else if (prevBtn === null) {
+      prevBtn = this;
+      this.classList.remove('btn-style2');
+      this.classList.add('btn-style2-clicked');
     } else {
-      this.style.backgroundColor = 'white';
-      this.style.color = '#f69906';
-      this.style.transition = 'all 0.3s';
+      prevBtn.classList.remove('btn-style2-clicked');
+      prevBtn.classList.add('btn-style2');
+      this.classList.remove('btn-style2');
+      this.classList.add('btn-style2-clicked');
+      prevBtn = this;
     }
   });
 });
-
-// 마우스가 버튼 위로 이동할 때의 스타일 변경 코드를 각 버튼의 마우스 이벤트 리스너에서 실행합니다.
-operations2.forEach((btn) => {
-  btn.addEventListener('mouseover', function () {
-    if (this.textContent !== '=') {
-      this.style.backgroundColor = '#fcc78d';
-      this.style.transition = 'all 0.3s';
-    }
-  });
-
-  btn.addEventListener('mouseout', function () {
-    if (this.textContent !== '=') {
-      this.style.backgroundColor = '#f69906';
-      this.style.color = 'white';
-      this.style.transition = 'all 0.3s';
-    }
-  });
-});
+// ------------------------------------------------ //
+// function changeC() {
+//   const allClear = document.querySelector('.all-clear');
+//   allClear.textContent = 'C';
+// }
+// function changeAC() {
+//   const allClear = document.querySelector('.all-clear');
+//   allClear.textContent = 'AC';
+//   currentNumber = '0';
+//   result.textContent = '0';
+//   display.textContent = display.textContent.slice();
+// }

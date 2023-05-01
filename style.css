@@ -11,22 +11,7 @@ body {
 button {
   font-family: 'AppleSDGothicNeo', 'Noto Sans KR', sans-serif;
   border: none;
-  font-size: 25px;
-}
-
-.display {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-end;
-  color: white;
-  padding: 15px;
-}
-.display .result {
-  min-height: 80px;
-  text-align: right;
-
-  font-size: 60px;
+  font-size: 30px;
 }
 
 .calc {
@@ -42,16 +27,30 @@ button {
 }
 
 .display {
+  display: grid;
   flex-basis: 200px;
-  flex-grow: 5;
+  box-sizing: border-box;
+  justify-content: flex-end;
+  align-items: flex-end;
+  color: white;
+  padding: 15px;
+}
+.display .result {
+  min-height: 80px;
+  text-align: right;
+  justify-self: flex-end;
+  align-items: flex-end;
+  font-size: 60px;
 }
 
 .display-calc {
+  justify-self: flex-end;
+  align-items: flex-end;
   color: #737373;
 }
 
 .buttons {
-  flex-grow: 5;
+  /* flex-grow: 5; */
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: repeat(5, 1fr);
@@ -61,6 +60,7 @@ button {
 .button {
   justify-self: center;
   align-self: center;
+  box-sizing: border-box;
   width: 60px;
   height: 60px;
   border-radius: 150px;
@@ -79,37 +79,52 @@ button {
 .btn-style1:first-child {
   font-weight: normal;
 }
+.btn-style1:hover {
+  background: #b5b5b5;
+  transition: 0.3s;
+}
+.btn-style1:active {
+  background: #cecece;
+  transition: 0.3s;
+}
 .btn-style2 {
   background: #fe9f06;
   color: white;
   font-weight: bold;
   padding-bottom: 5px;
   font-size: 30px;
+  transition: 0.3s;
 }
+
+.btn-style2:hover {
+  background: #fcc78d;
+  transition: 0.3s;
+}
+
+.btn-style2-clicked {
+  background: white;
+  color: #fe9f06;
+  transition: 0.3s;
+  font-weight: bold;
+  padding-bottom: 5px;
+  font-size: 30px;
+}
+
+.equal:active {
+  background: white;
+  color: #fe9f06;
+  transition: 0.3s;
+}
+
 .btn-style3 {
   background: #333333;
   color: white;
 }
 
-.btn-style1:active {
-  background: #cecece;
+.btn-style3:hover {
+  background: #565656;
   transition: 0.3s;
 }
-/* .btn-style2:hover {
-  background: #fcc78d;
-  transition: 0.3s;
-}
-
-.btn-style2:active {
-  background: white;
-  color: #fe9f06;
-} */
-/* .btn-style2-clicked {
-  background: white;
-  color: #fe9f06;
-  transition: 0.3s;
-} */
-
 .btn-style3:active {
   background: #737373;
   transition: 0.3s;
