@@ -6,12 +6,10 @@ const operations1 = document.querySelectorAll('.operation1');
 const operations2 = document.querySelectorAll('.operation2');
 const numbers = document.querySelectorAll('.number');
 // -----------------------기본 세팅------------------------ //
+let expression = [];
 let currentNumber = '0';
 let dotUsed = false;
 let operator = null;
-let prevNumber = null;
-// 이전에 계산된 결과를 저장해 둘 변수
-let previousResult = null;
 // 현재 폰트 사이즈와 원래 폰트 사이즈 저장
 let currentFontSize = parseFloat(window.getComputedStyle(result).fontSize);
 const originalFontSize = currentFontSize;
@@ -28,11 +26,12 @@ operations1.forEach((button) => {
         // result가 0인 경우, AC 버튼이 아닌 다른 버튼 클릭 이벤트를 막음
         return;
       } else if (buttonText === 'AC') {
-        // 'AC' 버튼을 클릭한 경우의 계산 수행
+        // 'AC' 버튼을 클릭한 경우
+        resetStyle();
         currentNumber = '0';
+        expression = [];
+        operator = null;
         dotUsed = false;
-        previousResult = null;
-        prevNumber = null;
         result.textContent = '0';
         display.textContent = '';
         // 폰트 크기를 원래대로 복원
@@ -51,25 +50,28 @@ operations1.forEach((button) => {
     }
   });
 });
-// ----------------------숫자 버튼------------------------- //
+
+// ------------------ 숫자 버튼 ----------------- //
 numbers.forEach((number) => {
   number.addEventListener('click', () => {
     const numberText = number.textContent;
     resetStyle();
 
     // '.' 중복 방지하기
-    if (numberText === '.' && !dotUsed) {
-      currentNumber += numberText;
-      display.textContent += display.textContent === '' ? '0' : '';
-
-      dotUsed = true;
-    } else if (numberText !== '.') {
-      // 현재 연산자가 없을 때는 입력된 숫자를 결과창에 출력
-      // 현재 입력된 숫자가 0이고 소수점이 아직 입력되지 않은 경우, 0을 대체
-      currentNumber = currentNumber === '0' && !dotUsed ? numberText : currentNumber + numberText;
-    } else if (numberText === '.' && dotUsed) {
+    if (numberText === '.' && dotUsed) {
       return;
+    } else if (numberText === '.') {
+      currentNumber = currentNumber === '0' ? '0.' : currentNumber + '.';
+      display.textContent += display.textContent === '' ? '0' : '';
+      dotUsed = true;
+    } else {
+      if (operator !== null) {
+        currentNumber = '';
+        operator = null;
+      }
+      currentNumber = currentNumber === '0' ? numberText : currentNumber + numberText;
     }
+
     if (currentNumber.replace('.', '').length > 9) {
       return;
     }
@@ -78,15 +80,15 @@ numbers.forEach((number) => {
     } else if (display.textContent !== '0') {
       display.textContent += numberText;
     }
-    if (result.textContent[0] === '0') {
-      result.textContent = currentNumber;
-    } else {
-      result.textContent = new Intl.NumberFormat().format(currentNumber);
-    }
+
+    // 할당하기(0 붙는 문제)
+    result.textContent = dotUsed ? currentNumber : new Intl.NumberFormat().format(currentNumber);
+
     // 결과창에도 할당
     resizeFont();
   });
 });
+
 // -------------------------------------------------- //
 
 // ----------------------사칙 연산------------------------ //
@@ -98,27 +100,31 @@ operations2.forEach((operation) => {
       return;
     } else {
       dotUsed = false; // 소수점 사용 여부 초기화
-      if (prevNumber === null) {
-        // 현재 연산자가 처음 눌린 경우, 이전에 입력된 숫자는 현재 숫자
-        prevNumber = currentNumber;
+      if (operator === null) {
+        // 현재 연산자가 처음 눌린 경우, expression에 값 추가하기
+        if (expression.length === 0) {
+          expression.push(currentNumber);
+        }
+        currentNumber = '0';
         operator = operationText;
-        currentNumber = '';
-
         display.textContent += `${operationText}`;
-      } else if (currentNumber !== '') {
+      } else if (operator !== null && expression.length !== 0 && currentNumber !== '0') {
+        //currentNumber 가 0이 아닐 때
+        // 배열 안에 이미 값이 들어 있을 때
         // 이전 연산자와 함께 계산 수행
-        const calculation = operate(parseFloat(prevNumber), parseFloat(currentNumber), operator);
-        prevNumber = calculation.toString();
-        operator = operationText;
-        currentNumber = '';
+        expression.push(currentNumber, operator);
+        const calculation = calculate(expression);
+        expression = [calculation];
+        currentNumber = '0';
         display.textContent = `${calculation}${operationText}`;
-        result.textContent = prevNumber;
-        resizeFont();
+        result.textContent = calculation;
+        operator = operationText;
       } else {
         // 현재 입력된 연산자를 바로 할당
         operator = operationText;
         display.textContent = display.textContent.slice(0, -1) + `${operationText}`;
       }
+      resizeFont();
     }
   });
 });
@@ -126,33 +132,50 @@ operations2.forEach((operation) => {
 // -----------------------등호(=) 버튼------------------------ //
 const equal = document.querySelector('.equal');
 equal.addEventListener('click', () => {
-  if (prevNumber !== null && currentNumber !== '' && operator !== null) {
-    const calculation = operate(parseFloat(prevNumber), parseFloat(currentNumber), operator);
-    previousResult = calculation.toString();
-    result.textContent = calculation;
+  if (operator === null) {
+    expression[0] = currentNumber;
+    result.textContent = new Intl.NumberFormat().format(expression[0]);
+  } else {
+    expression.push(currentNumber, operator);
+    const calculation = calculate(expression);
+    result.textContent = new Intl.NumberFormat().format(calculation);
     display.textContent = calculation;
-    currentNumber = calculation;
-    prevNumber = null;
-    operator = null;
-
-    resizeFont();
   }
+
+  operator = null;
+
+  resizeFont();
 });
 
 // ----------------------계산 함수-------------------------- //
 function operate(num1, num2, operator) {
   switch (operator) {
     case '+':
-      return num1 + num2;
+      return '+';
     case '−':
-      return num1 - num2;
+      return '-';
     case '×':
-      return num1 * num2;
+      return '*';
     case '÷':
-      return num1 / num2;
+      return '/';
     default:
       return null;
   }
+}
+
+function calculate(arr) {
+  let operator = arr.pop();
+  let b = arr.pop();
+  let a = arr.pop();
+  const operate = {
+    '+': '+',
+    '−': '-',
+    '×': '*',
+    '/': '/',
+  };
+  let calculation = new Function(`return ${parseFloat(a)} ${operate[operator]} ${parseFloat(a)}`)();
+  arr[0] = calculation;
+  return arr[0];
 }
 
 // -------------------폰트 크기 조절 함수------------------- //
