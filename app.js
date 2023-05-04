@@ -50,38 +50,45 @@ operations1.forEach((button) => {
     }
   });
 });
-
-// ------------------ 숫자 버튼 ----------------- //
+// ----------------- 숫자 버튼 --------------------- //
 numbers.forEach((number) => {
   number.addEventListener('click', () => {
     const numberText = number.textContent;
     resetStyle();
 
-    // '.' 중복 방지하기
-    if (numberText === '.' && dotUsed) {
-      return;
-    } else if (numberText === '.') {
-      currentNumber = currentNumber === '0' ? '0.' : currentNumber + '.';
-      display.textContent += display.textContent === '' ? '0' : '';
-      dotUsed = true;
-    } else {
-      if (operator !== null) {
-        currentNumber = '';
-        operator = null;
+    // '.' 중복 막기(처음, 연산자 입력 후)
+    // 입력시 dotUsed true 설정하기
+    if (numberText === '.') {
+      if (dotUsed) {
+        return;
+      } else if (!dotUsed) {
+        dotUsed = true;
+        if (currentNumber === '0') {
+          display.textContent += currentNumber;
+        }
+        currentNumber += numberText;
       }
-      currentNumber = currentNumber === '0' ? numberText : currentNumber + numberText;
+      display.textContent += numberText;
+    } // 0 중복 막기(처음, 연산자 입력 후)
+    else if (numberText === '0') {
+      if (currentNumber === '0') {
+        currentNumber = '0';
+      } else if (currentNumber !== '0') {
+        currentNumber += numberText;
+      }
+      display.textContent += numberText;
+    } // 그외 숫자(1~9)
+    else {
+      if (currentNumber === '0' && !dotUsed) {
+        currentNumber = numberText;
+      } else {
+        currentNumber += numberText;
+      }
+      display.textContent += numberText;
     }
 
-    if (currentNumber.replace('.', '').length > 9) {
-      return;
-    }
-    if (display.textContent === '0' && dotUsed) {
-      display.textContent += numberText;
-    } else if (display.textContent !== '0') {
-      display.textContent += numberText;
-    }
-
-    // 할당하기(0 붙는 문제)
+    // --할당하기-- //
+    // result - 실수일 때 정수일 때 다르게 출력
     result.textContent = dotUsed ? currentNumber : new Intl.NumberFormat().format(currentNumber);
 
     // 결과창에도 할당
@@ -89,7 +96,7 @@ numbers.forEach((number) => {
   });
 });
 
-// -------------------------------------------------- //
+// ------------------------------------------------------- //
 
 // ----------------------사칙 연산------------------------ //
 operations2.forEach((operation) => {
@@ -134,11 +141,11 @@ const equal = document.querySelector('.equal');
 equal.addEventListener('click', () => {
   if (operator === null) {
     expression[0] = currentNumber;
-    result.textContent = new Intl.NumberFormat().format(expression[0]);
+    result.textContent = expression[0];
   } else {
     expression.push(currentNumber, operator);
     const calculation = calculate(expression);
-    result.textContent = new Intl.NumberFormat().format(calculation);
+    result.textContent = calculation;
     display.textContent = calculation;
   }
 
@@ -152,7 +159,7 @@ function operate(num1, num2, operator) {
   switch (operator) {
     case '+':
       return '+';
-    case '−':
+    case '-':
       return '-';
     case '×':
       return '*';
@@ -169,13 +176,13 @@ function calculate(arr) {
   let a = arr.pop();
   const operate = {
     '+': '+',
-    '−': '-',
+    '-': '-',
     '×': '*',
-    '/': '/',
+    '÷': '/',
   };
-  let calculation = new Function(`return ${parseFloat(a)} ${operate[operator]} ${parseFloat(a)}`)();
-  arr[0] = calculation;
-  return arr[0];
+  let calculation = new Function(`return ${parseFloat(a)} ${operate[operator]} ${parseFloat(b)}`)();
+
+  return calculation;
 }
 
 // -------------------폰트 크기 조절 함수------------------- //
