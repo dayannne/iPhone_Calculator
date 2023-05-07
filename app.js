@@ -10,7 +10,8 @@ let expression = [];
 let currentNumber = '0';
 let dotUsed = false;
 let operator = null;
-// 현재 폰트 사이즈와 원래 폰트 사이즈 저장
+let equalUsed = false;
+// 폰트 사이즈(현재,기존)
 let currentFontSize = parseFloat(window.getComputedStyle(result).fontSize);
 const originalFontSize = currentFontSize;
 // -------------------------------------------------------- //
@@ -18,16 +19,18 @@ const originalFontSize = currentFontSize;
 operations1.forEach((button) => {
   button.addEventListener('click', () => {
     const buttonText = button.textContent;
-    if (result.textContent === '0') {
+    resetStyle();
+    if (operator && currentNumber) {
+      currentNumber = '0';
+    }
+
+    if (result.textContent === '0' && buttonText !== 'AC') {
       // result가 0인 경우, 모든 버튼 클릭 이벤트를 막음
       return;
     } else {
-      if (result.textContent === '0' && buttonText !== 'AC') {
-        // result가 0인 경우, AC 버튼이 아닌 다른 버튼 클릭 이벤트를 막음
-        return;
-      } else if (buttonText === 'AC') {
+      if (buttonText === 'AC') {
         // 'AC' 버튼을 클릭한 경우
-        resetStyle();
+
         currentNumber = '0';
         expression = [];
         operator = null;
@@ -38,11 +41,22 @@ operations1.forEach((button) => {
         result.style.fontSize = originalFontSize + 'px';
         currentFontSize = originalFontSize;
       } // '&#177' 버튼을 클릭한 경우의 계산 수행
-      else if (buttonText === '±') {
-        currentNumber = currentNumber * -1;
+      if (buttonText === '±') {
+        if (expression.length === 0) {
+          currentNumber = currentNumber * -1 + '';
+        } else {
+          currentNumber = expression[0] * -1 + '';
+          expression[0] = currentNumber;
+        }
         display.textContent = currentNumber;
-      } else if (buttonText === '%') {
-        currentNumber = currentNumber * 0.01;
+      }
+      if (buttonText === '%') {
+        if (expression.length === 0) {
+          currentNumber = currentNumber * 0.01 + '';
+        } else {
+          currentNumber = expression[0] * 0.01 + '';
+          expression[0] = currentNumber;
+        }
         display.textContent = currentNumber;
       }
       result.textContent = currentNumber;
@@ -56,35 +70,51 @@ numbers.forEach((number) => {
     const numberText = number.textContent;
     resetStyle();
 
-    // '.' 중복 막기(처음, 연산자 입력 후)
-    // 입력시 dotUsed true 설정하기
+    if (equalUsed && !operator) {
+      display.textContent = '';
+      currentNumber = '0';
+      expression = [];
+      equalUsed = false;
+    }
+
     if (numberText === '.') {
+      // '.' 클릭 - 중복막기, 0일 때 설정 (처음, 연산자 입력 후)
+      // 입력시 dotUsed true 설정하기
       if (dotUsed) {
         return;
       } else if (!dotUsed) {
         dotUsed = true;
         if (currentNumber === '0') {
-          display.textContent += currentNumber;
+          currentNumber = '0';
+          display.textContent +=
+            display.textContent[display.textContent.length - 1] === '0' ? '' : '0';
         }
         currentNumber += numberText;
       }
       display.textContent += numberText;
-    } // 0 중복 막기(처음, 연산자 입력 후)
+    } // 0 클릭 - 0중복 막기(처음, 연산자 입력 후)
     else if (numberText === '0') {
       if (currentNumber === '0') {
         currentNumber = '0';
+        if (operator && !dotUsed) {
+          display.textContent += numberText;
+        }
       } else if (currentNumber !== '0') {
         currentNumber += numberText;
+        display.textContent += numberText;
       }
-      display.textContent += numberText;
     } // 그외 숫자(1~9)
     else {
       if (currentNumber === '0' && !dotUsed) {
         currentNumber = numberText;
+        display.textContent =
+          display.textContent.slice(-1) === '0'
+            ? display.textContent.slice(0, -1) + numberText
+            : display.textContent + numberText;
       } else {
         currentNumber += numberText;
+        display.textContent += numberText;
       }
-      display.textContent += numberText;
     }
 
     // --할당하기-- //
@@ -102,8 +132,8 @@ numbers.forEach((number) => {
 operations2.forEach((operation) => {
   operation.addEventListener('click', () => {
     const operationText = operation.textContent;
-    if (result.textContent === '0' || operationText === '=') {
-      // result가 0인 경우, 모든 버튼 클릭 이벤트를 막음
+    if (display.textContent === '' || operationText === '=') {
+      // 모든 버튼 클릭 이벤트를 막음
       return;
     } else {
       dotUsed = false; // 소수점 사용 여부 초기화
@@ -113,24 +143,26 @@ operations2.forEach((operation) => {
           expression.push(currentNumber);
         }
         currentNumber = '0';
-        operator = operationText;
         display.textContent += `${operationText}`;
-      } else if (operator !== null && expression.length !== 0 && currentNumber !== '0') {
+      } else if (
+        (operator !== null && expression.length !== 0 && currentNumber !== '0') ||
+        (currentNumber === '0' && display.textContent.slice(-1) === '0')
+      ) {
         //currentNumber 가 0이 아닐 때
         // 배열 안에 이미 값이 들어 있을 때
         // 이전 연산자와 함께 계산 수행
         expression.push(currentNumber, operator);
         const calculation = calculate(expression);
-        expression = [calculation];
+        expression.push(calculation);
         currentNumber = '0';
+
         display.textContent = `${calculation}${operationText}`;
         result.textContent = calculation;
-        operator = operationText;
       } else {
         // 현재 입력된 연산자를 바로 할당
-        operator = operationText;
         display.textContent = display.textContent.slice(0, -1) + `${operationText}`;
       }
+      operator = operationText;
       resizeFont();
     }
   });
@@ -145,17 +177,20 @@ equal.addEventListener('click', () => {
   } else {
     expression.push(currentNumber, operator);
     const calculation = calculate(expression);
+    expression.push(calculation);
+    // currentNumber = '0';
     result.textContent = calculation;
-    display.textContent = calculation;
+    currentNumber = calculation;
+    display.textContent = calculation ? calculation : '';
+    operator = null;
+    equalUsed = true;
   }
-
-  operator = null;
 
   resizeFont();
 });
 
 // ----------------------계산 함수-------------------------- //
-function operate(num1, num2, operator) {
+function operate(operator) {
   switch (operator) {
     case '+':
       return '+';
@@ -171,6 +206,7 @@ function operate(num1, num2, operator) {
 }
 
 function calculate(arr) {
+  console.log(arr);
   let operator = arr.pop();
   let b = arr.pop();
   let a = arr.pop();
@@ -181,7 +217,7 @@ function calculate(arr) {
     '÷': '/',
   };
   let calculation = new Function(`return ${parseFloat(a)} ${operate[operator]} ${parseFloat(b)}`)();
-
+  console.log(calculation);
   return calculation;
 }
 
@@ -223,7 +259,7 @@ operations2.forEach((operation) => {
     }
   });
 });
-// ------------------------------------------------ //
+// ----------------------AC - C 변경 버튼 ---------------------- //
 // function changeC() {
 //   const allClear = document.querySelector('.all-clear');
 //   allClear.textContent = 'C';
