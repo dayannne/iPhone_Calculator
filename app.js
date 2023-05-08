@@ -157,7 +157,7 @@ operations2.forEach((operation) => {
         currentNumber = '0';
 
         display.textContent = `${calculation}${operationText}`;
-        result.textContent = calculation;
+        result.textContent = dotUsed ? calculation : new Intl.NumberFormat().format(calculation);
       } else {
         // 현재 입력된 연산자를 바로 할당
         display.textContent = display.textContent.slice(0, -1) + `${operationText}`;
@@ -179,7 +179,7 @@ equal.addEventListener('click', () => {
     const calculation = calculate(expression);
     expression.push(calculation);
     // currentNumber = '0';
-    result.textContent = calculation;
+    result.textContent = dotUsed ? calculation : new Intl.NumberFormat().format(calculation);
     currentNumber = calculation;
     display.textContent = calculation ? calculation : '';
     operator = null;
